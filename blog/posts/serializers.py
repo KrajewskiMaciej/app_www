@@ -22,3 +22,13 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
+
+    def validate_name(self, value):
+        if not value.isalpha():
+            raise serializers.ValidationError("Nazwa może zawierać tylko litery!")
+        return value
+
+    def validate_created_at(self, value):
+        if value > date.today():
+            raise serializers.ValidationError("Data dodania nie może być z przyszłości!")
+        return value

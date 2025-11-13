@@ -20,7 +20,7 @@ class Topic(models.Model):
 
 class Post(models.Model):
     title = models.CharField(max_length=150)
-    text = models.TextField
+    text = models.TextField()
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     slug = models.SlugField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
