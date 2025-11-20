@@ -1,8 +1,10 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from .models import Category, Topic, Post
 from .serializers import CategorySerializer, TopicSerializer, PostSerializer
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(['GET', 'POST'])
 def category_list(request):
@@ -95,24 +97,31 @@ def post_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def post_detail(request, pk):
+@api_view(['PUT'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
+def post_update(request, pk):
     try:
         post = Post.objects.get(pk=pk)
     except Post.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=404)
 
-    if request.method == 'GET':
-        serializer = PostSerializer(post)
+    serializer = PostSerializer(post, data=request.data)
+    if serializer.is_valid():
+        serializer.save(owner=request.user)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        serializer = PostSerializer(post, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=400)
 
-    elif request.method == 'DELETE':
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def post_delete(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response(status=404)
+
+    post.delete()
+    return Response(status=204)
