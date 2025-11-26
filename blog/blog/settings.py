@@ -54,6 +54,12 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'posts.permissions.CustomDjangoModelPermissions',
+    )
+}
+
 ROOT_URLCONF = 'blog.urls'
 
 TEMPLATES = [

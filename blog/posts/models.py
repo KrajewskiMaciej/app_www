@@ -28,6 +28,9 @@ class Post(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     class Meta:
         ordering = ['-created_at']
+        permissions = [
+            ("can_edit_others_posts", "Może edytować cudze posty"),
+        ]
     def __str__(self):  # Zadanie 3
         preview = " ".join(self.text.split()[:5])
         if len(self.text.split()) > 5:

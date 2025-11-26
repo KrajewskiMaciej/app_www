@@ -5,6 +5,7 @@ urlpatterns = [
     path('categories/', api_views.category_list),
     path('categories/<int:pk>/', api_views.category_detail),
     path('categories/<int:pk>/topics/', views.topics_by_category),
+    path("category/<int:pk>/", views.category_detail),
 
 
     path('topics/', api_views.topic_list),

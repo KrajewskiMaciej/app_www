@@ -5,6 +5,8 @@ from .models import Category, Topic, Post
 from .serializers import CategorySerializer, TopicSerializer, PostSerializer
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from .permissions import CustomDjangoModelPermissions
 
 @api_view(['GET', 'POST'])
 def category_list(request):
@@ -106,9 +108,16 @@ def post_update(request, pk):
     except Post.DoesNotExist:
         return Response(status=404)
 
+    if post.created_by != request.user:
+        if not request.user.has_perm("posts.can_edit_others_posts"):
+            return Response(
+                {"detail": "Nie masz uprawnień do edytowania cudzych postów."},
+                status=403
+            )
+
     serializer = PostSerializer(post, data=request.data)
     if serializer.is_valid():
-        serializer.save(owner=request.user)
+        serializer.save(created_by=post.created_by)
         return Response(serializer.data)
 
     return Response(serializer.errors, status=400)
@@ -125,3 +134,25 @@ def post_delete(request, pk):
 
     post.delete()
     return Response(status=204)
+
+class PostDetail(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [CustomDjangoModelPermissions]
+
+    def get(self, request, pk):
+        try:
+            post = Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            return Response(status=404)
+
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        try:
+            post = Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            return Response(status=404)
+
+        post.delete()
+        return Response(status=204)
