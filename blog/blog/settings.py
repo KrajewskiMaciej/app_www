@@ -41,7 +41,12 @@ INSTALLED_APPS = [
     'posts',
     'rest_framework',
     'rest_framework.authtoken',
+    'graphene_django',
 ]
+
+GRAPHENE = {
+    "SCHEMA": "posts.schema.schema"
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
